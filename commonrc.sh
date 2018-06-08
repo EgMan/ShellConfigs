@@ -3,13 +3,13 @@ hist_size=1000000
 
 #Functions
 rc_full() {
-	echo `realpath $BASH_SOURCE`
+    echo `realpath $BASH_SOURCE`
 }
 rc_path() {
-	echo $(dirname `rc_full`)
+    echo $(dirname `rc_full`)
 }
 rc_name() {
-	echo $(basename `rc_full`)
+    echo $(basename `rc_full`)
 }
 
 #Todo: accept optional argument to save to alternate file
@@ -24,7 +24,7 @@ bookmark() {
         makeAlias="alias $1='cd $(pwd)'"
         echo $makeAlias
         echo $makeAlias >> `rc_path`/bookmarks
-	echo "Saved to `rc_path`/bookmarks"
+        echo "Saved to `rc_path`/bookmarks"
         eval ${makeAlias}
 }
 
@@ -32,13 +32,13 @@ bookmark() {
 [ ! -f ~/.vimrc ] && touch ~/.vimrc
 cat ~/.vimrc | grep "source `rc_path`/vimrc.vim" &> /dev/null
 if [ $? -ne 0 ]; then
-	echo "source `rc_path`/vimrc.vim" >> ~/.vimrc
+    echo "source `rc_path`/vimrc.vim" >> ~/.vimrc
 fi
 
 [ ! -f ~/.tmux.conf ] && touch ~/.tmux.conf
 cat ~/.tmux.conf | grep "source-file `rc_path`/tmux.conf" &> /dev/null
 if [ $? -ne 0 ]; then
-	echo "source-file `rc_path`/tmux.conf" >> ~/.tmux.conf 
+    echo "source-file `rc_path`/tmux.conf" >> ~/.tmux.conf 
 fi
 
 #Aliases
