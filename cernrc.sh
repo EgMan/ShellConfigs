@@ -1,8 +1,10 @@
 #Local
-self=`realpath $BASH_SOURCE`
 
 #Aliases
-alias cernrc="vim $self"
+alias cernrc="vim `realpath $BASH_SOURCE`"
+
+#Sources
+source `rc_path`/bookmarks_cern
 
 #Functions
 cernerdns(){
