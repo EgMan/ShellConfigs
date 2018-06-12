@@ -3,7 +3,12 @@ hist_size=1000000
 
 #Functions
 rc_full() {
-    echo `realpath $BASH_SOURCE`
+    #ret= `realpath $BASH_SOURCE`
+    #[ -z "$ret" ] && ret=${0:a}
+    #echo $ret
+
+    #TODO FIX THIS HARDCODING
+    echo "/home/aw055790/.rc/commonrc.sh"
 }
 rc_path() {
     echo $(dirname `rc_full`)
@@ -41,12 +46,17 @@ if [ $? -ne 0 ]; then
     echo "source-file `rc_path`/tmux.conf" >> ~/.tmux.conf 
 fi
 
+[ -d ~/.oh.my.zsh ] && ln -sf  `rc_path`/nahmsayin_prompt.zsh-theme ~/.oh-my-zsh/themes/nahmsayin_prompt.zsh-theme
+
 #Aliases
 alias commonrc="vim `rc_full`"
 alias refresh="source `rc_full`"
 alias bookmarks="vim `rc_path`/bookmarks"
 alias vimrc="vim `rc_path`/vimrc.vim"
 alias tmuxconf="vim `rc_path`/tmux.conf"
+alias zrefresh="source ~/.zshrc"
+alias brefresh="source ~/.bashrc"
+alias nahmsayin="vim `rc_path`/nahmsayin_prompt.zsh-theme"
 
 #Exports
 export HISTSIZE=$hist_size
@@ -55,7 +65,6 @@ export HISTSIZE=$hist_size
 source `rc_path`/cernrc.sh
 source `rc_path`/wslrc.sh
 source `rc_path`/bookmarks
-
 
 #Cleanup local
 unset hist_size
