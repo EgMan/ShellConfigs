@@ -3,9 +3,9 @@ alias echo='echo -n'
 function permission_icon {
     local sudo_access=$(sudo -n uptime 2>&1|grep "load"|wc -l)
     if [ $sudo_access -ne 0 ];then
-        echo "%{$fg[yellow]%}♔"
+        echo "%{$fg[yellow]%}●"
     else
-        echo "%{$fg[yellow]%}♙"
+        echo "%{$fg[yellow]%}○"
     fi
 }
 
