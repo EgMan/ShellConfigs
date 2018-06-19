@@ -48,6 +48,20 @@ fi
 
 [ -d ~/.oh.my.zsh ] && ln -sf  `rc_path`/nahmsayin_prompt.zsh-theme ~/.oh-my-zsh/themes/nahmsayin_prompt.zsh-theme
 
+if [[ "$TERM" != "screen" ]] && 
+        [[ "$SSH_CONNECTION" == "" ]]; then
+    # Attempt to discover a detached session and attach 
+    # it, else create a new session
+    WHOAMI=$(whoami)
+    if tmux has-session -t $WHOAMI 2>/dev/null; then
+        tmux -2 attach-session -t $WHOAMI
+    else
+        tmux -2 new-session -s $WHOAMI
+    fi
+else
+    echo "Screen is garbage.  Use tmux instead."
+fi
+
 #Aliases
 alias commonrc="vim `rc_full`"
 alias refresh="source `rc_full`"
