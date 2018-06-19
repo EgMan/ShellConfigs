@@ -48,6 +48,8 @@ fi
 
 [ -d ~/.oh.my.zsh ] && ln -sf  `rc_path`/nahmsayin_prompt.zsh-theme ~/.oh-my-zsh/themes/nahmsayin_prompt.zsh-theme
 
+[ ! -d ~/.vimundodir ] && mkdir ~/.vimundodir
+
 if [[ "$TERM" != "screen" ]] && 
         [[ "$SSH_CONNECTION" == "" ]]; then
     # Attempt to discover a detached session and attach 
