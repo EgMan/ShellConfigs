@@ -14,6 +14,14 @@ set hlsearch
 set incsearch
 set cursorline
 
-""Persistant undo
+"Persistant undo
 set undofile
-set undodir=~/.vimundodir
+set undodir=~/.vim/undo//
+
+" backups
+set backup
+set backupdir=~/.vim/backup//
+
+"store swp files in the same place
+set directory=~/.vim/swap//
+

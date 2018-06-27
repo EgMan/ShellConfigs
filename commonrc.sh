@@ -48,7 +48,9 @@ fi
 
 [ -d ~/.oh.my.zsh ] && ln -sf  `rc_path`/nahmsayin_prompt.zsh-theme ~/.oh-my-zsh/themes/nahmsayin_prompt.zsh-theme
 
-[ ! -d ~/.vimundodir ] && mkdir ~/.vimundodir
+[ ! -d ~/.vim/swp ] && mkdir -p ~/.vim/swap
+[ ! -d ~/.vim/undo ] && mkdir -p ~/.vim/undo
+[ ! -d ~/.vim/backup ] && mkdir -p ~/.vim/backup
 
 if [[ "$TERM" != "screen" ]] && 
         [[ "$SSH_CONNECTION" == "" ]]; then
