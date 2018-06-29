@@ -33,25 +33,42 @@ bookmark() {
         eval ${makeAlias}
 }
 
-#Setups
-[ ! -f ~/.vimrc ] && touch ~/.vimrc
-cat ~/.vimrc | grep "source `rc_path`/vimrc.vim" &> /dev/null
-if [ $? -ne 0 ]; then
-    echo "source `rc_path`/vimrc.vim" >> ~/.vimrc
+#Argument parsing
+force_setup=1
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -setup | -s)
+            force_setup=1
+            echo "forcing setup"
+        ;;
+    esac
+    shift 1
+done
+
+#One time setup
+if [ ! -f `rc_path`/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
+    [ ! -f ~/.vimrc ] && touch ~/.vimrc
+    cat ~/.vimrc | grep "source `rc_path`/vimrc.vim" &> /dev/null
+    if [ $? -ne 0 ]; then
+        echo "source `rc_path`/vimrc.vim" >> ~/.vimrc
+    fi
+    
+    [ ! -f ~/.tmux.conf ] && touch ~/.tmux.conf
+    cat ~/.tmux.conf | grep "source-file `rc_path`/tmux.conf" &> /dev/null
+    if [ $? -ne 0 ]; then
+        echo "source-file `rc_path`/tmux.conf" >> ~/.tmux.conf 
+    fi
+    
+    [ -d ~/.oh.my.zsh ] && ln -sf  `rc_path`/nahmsayin_prompt.zsh-theme ~/.oh-my-zsh/themes/nahmsayin_prompt.zsh-theme
+    
+    [ ! -d ~/.vim/swp ] && mkdir -p ~/.vim/swap
+    [ ! -d ~/.vim/undo ] && mkdir -p ~/.vim/undo
+    [ ! -d ~/.vim/backup ] && mkdir -p ~/.vim/backup
+
+    touch `rc_path`/.deleteme_to_rerun_setup
 fi
 
-[ ! -f ~/.tmux.conf ] && touch ~/.tmux.conf
-cat ~/.tmux.conf | grep "source-file `rc_path`/tmux.conf" &> /dev/null
-if [ $? -ne 0 ]; then
-    echo "source-file `rc_path`/tmux.conf" >> ~/.tmux.conf 
-fi
-
-[ -d ~/.oh.my.zsh ] && ln -sf  `rc_path`/nahmsayin_prompt.zsh-theme ~/.oh-my-zsh/themes/nahmsayin_prompt.zsh-theme
-
-[ ! -d ~/.vim/swp ] && mkdir -p ~/.vim/swap
-[ ! -d ~/.vim/undo ] && mkdir -p ~/.vim/undo
-[ ! -d ~/.vim/backup ] && mkdir -p ~/.vim/backup
-
+#Tmux
 if [[ "$TERM" != "screen" ]] && 
         [[ "$SSH_CONNECTION" == "" ]]; then
     # Attempt to discover a detached session and attach 
@@ -86,3 +103,4 @@ source `rc_path`/bookmarks
 
 #Cleanup local
 unset hist_size
+unset force_setup
