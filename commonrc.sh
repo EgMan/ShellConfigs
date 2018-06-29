@@ -1,6 +1,24 @@
 #Local
 hist_size=1000000
 
+#Tmux
+if [ -z $TMUX ]; then
+    if [[ "$TERM" == "screen" ]]; then
+        echo "Screen is garbage.  Use tmux instead."
+    elif [[ "$SSH_CONNECTION" != "" ]]; then
+        echo "SSH Connection detected.  Not attaching tmux session."
+    else
+        #Attempt to discover a detached session and atta it,
+        #else create a new session
+        WHOAMI=$(whoami)
+        if tmux has-session -t $WHOAMI 2>/dev/null; then
+            tmux -2 attach-session -t $WHOAMI
+        else
+        tmux -2 new-session -s $WHOAMI
+        fi
+    fi
+fi
+
 #Functions
 rc_full() {
     #ret= `realpath $BASH_SOURCE`
@@ -66,21 +84,6 @@ if [ ! -f `rc_path`/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
     [ ! -d ~/.vim/backup ] && mkdir -p ~/.vim/backup
 
     touch `rc_path`/.deleteme_to_rerun_setup
-fi
-
-#Tmux
-if [[ "$TERM" != "screen" ]] && 
-        [[ "$SSH_CONNECTION" == "" ]]; then
-    # Attempt to discover a detached session and attach 
-    # it, else create a new session
-    WHOAMI=$(whoami)
-    if tmux has-session -t $WHOAMI 2>/dev/null; then
-        tmux -2 attach-session -t $WHOAMI
-    else
-        tmux -2 new-session -s $WHOAMI
-    fi
-else
-    echo "Screen is garbage.  Use tmux instead."
 fi
 
 #Aliases
