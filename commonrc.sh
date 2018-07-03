@@ -1,7 +1,7 @@
 #Local
 hist_size=1000000
-loading_bar_size=7
-loading_bar_current=1
+loading_bar_size=6
+loading_bar_current=0
 
 #Functions
 clear_loading_bar(){
@@ -9,19 +9,31 @@ clear_loading_bar(){
         echo -ne '\b'
     done
 }
+
 render_loading_bar(){
-    if [ $loading_bar_current -ne 0 ]; then
-        clear_loading_bar
+    if [ $loading_bar_current -eq 0 ]; then
+        tput cuu 1
+        stty -echo
+        echo -n $'\e[6n'
+        read -d R x 
+        stty echo
+        loading_bar_pos=`echo -n ${x#??} | awk -F';' '{print $1}'`
+        echo "\n"
     fi
-    for i in `seq $loading_bar_size`; do
-        if [ $i -le $loading_bar_current ];then
+    tput sc
+    tput cup $loading_bar_pos 0
+    for i in `seq 0 $(($loading_bar_size - 1))`; do
+        if [ $i -lt $loading_bar_current ];then
             echo -ne '█'
         else
             echo -ne '░'
         fi
     done
+    echo -n " ${loading_bar_current}/${loading_bar_size}"
+    tput rc
     loading_bar_current=$((loading_bar_current + 1))
 }; render_loading_bar
+
 rc_full() {
     #ret= `realpath $BASH_SOURCE`
     #[ -z "$ret" ] && ret=${0:a}
@@ -30,12 +42,15 @@ rc_full() {
     #TODO FIX THIS HARDCODING
     echo "/home/aw055790/.rc/commonrc.sh"
 }
+
 rc_path() {
     echo $(dirname `rc_full`)
 }
+
 rc_name() {
     echo $(basename `rc_full`)
 }
+
 #Todo: accept optional argument to save to alternate file
 #Todo: save files to subdirectory
 bookmark() {
@@ -73,12 +88,11 @@ fi
 
 #Argument parsing
 render_loading_bar
-force_setup=1
+force_setup=0
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -setup | -s)
             force_setup=1
-            echo "forcing setup"
         ;;
     esac
     shift 1
@@ -87,6 +101,7 @@ done
 #One time setup
 render_loading_bar
 if [ ! -f `rc_path`/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
+    echo "Running setup"
     [ ! -f ~/.vimrc ] && touch ~/.vimrc
     cat ~/.vimrc | grep "source `rc_path`/vimrc.vim" &> /dev/null
     if [ $? -ne 0 ]; then
