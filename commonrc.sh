@@ -5,20 +5,18 @@ loading_bar_current=0
 
 #Functions
 clear_loading_bar(){
-    for i in `seq $loading_bar_size`; do
-        echo -ne '\b'
-    done
+    tput cup $loading_bar_pos 0
+    printf "%${COLUMNS}s" ""
 }
 
 render_loading_bar(){
     if [ $loading_bar_current -eq 0 ]; then
-        tput cuu 1
         stty -echo
         echo -n $'\e[6n'
         read -d R x 
         stty echo
-        loading_bar_pos=`echo -n ${x#??} | awk -F';' '{print $1}'`
-        echo "\n"
+        loading_bar_pos=$((`echo -n ${x#??} | awk -F';' '{print $1}'`-1))
+        echo ''
     fi
     tput sc
     tput cup $loading_bar_pos 0
