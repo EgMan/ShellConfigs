@@ -4,27 +4,39 @@ loading_bar_size=6
 loading_bar_current=0
 
 #Functions
-clear_loading_bar(){
-    tput cup $loading_bar_pos 0
-    printf "%${COLUMNS}s" ""
+query_cursor_row(){
+    stty -echo
+    echo -n $'\e[6n'
+    read -d R x 
+    stty echo
+    #This global state bullshit is a dumb workaround for the fact that this means of 
+    #querying for cursor position can't run in a subshell.  
+    #therefore it can't be set or read into a variable
+    #change this if another way is found. 
+    cursor_row=$((`echo -n ${x#??} | awk -F';' '{print $1}'`-1))
 }
-
+clear_loading_bar(){
+    query_cursor_row
+    tput sc
+    tput cup $loading_bar_pos 0
+    [ $cursor_row -eq $((loading_bar_pos+1)) ] && tput sc
+    clear_size=$((loading_bar_size+6))
+    printf "%${clear_size}s" ""
+    tput rc
+}
 render_loading_bar(){
     if [ $loading_bar_current -eq 0 ]; then
-        stty -echo
-        echo -n $'\e[6n'
-        read -d R x 
-        stty echo
-        loading_bar_pos=$((`echo -n ${x#??} | awk -F';' '{print $1}'`-1))
-        echo ''
+        query_cursor_row
+        loading_bar_pos=$cursor_row
+        [ $cursor_row -lt $((`tput lines`-1)) ] && echo ''
     fi
     tput sc
     tput cup $loading_bar_pos 0
     for i in `seq 0 $(($loading_bar_size - 1))`; do
         if [ $i -lt $loading_bar_current ];then
-            echo -ne '█'
+            echo -n '█'
         else
-            echo -ne '░'
+            echo -n '░'
         fi
     done
     echo -n " ${loading_bar_current}/${loading_bar_size}"
