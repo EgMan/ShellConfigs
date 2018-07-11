@@ -3,6 +3,9 @@ hist_size=1000000
 loading_bar_size=6
 loading_bar_current=0
 
+#Fix for zsh's background process bug
+[ ! -z $ZSH_NAME ] && unsetopt BG_NICE
+
 #Functions
 query_cursor_row(){
     stty -echo
@@ -44,6 +47,7 @@ render_loading_bar(){
     loading_bar_current=$((loading_bar_current + 1))
 }; render_loading_bar
 
+
 rc_full() {
     #ret= `realpath $BASH_SOURCE`
     #[ -z "$ret" ] && ret=${0:a}
@@ -59,6 +63,10 @@ rc_path() {
 
 rc_name() {
     echo $(basename `rc_full`)
+}
+display_tmux_joke(){
+    joke=`curl -s https://icanhazdadjoke.com/`
+    [ ! -z $TMUX ] && tmux display-message $joke
 }
 
 #Todo: accept optional argument to save to alternate file
@@ -159,3 +167,6 @@ unset hist_size
 unset force_setup
 unset loading_bar_current
 clear_loading_bar
+
+#Asynchronously display a joke in tmux status-line
+(display_tmux_joke &) 
