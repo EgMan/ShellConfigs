@@ -69,6 +69,15 @@ display_tmux_joke(){
     [ ! -z $TMUX ] && tmux display-message $joke
 }
 
+vimf() {
+    results=`find . -name "$1"`
+    resultsCount=`echo $results | wc -l`
+    firstResult=`echo $results | head -1`
+    message="$resultsCount result(s) found.  Editing: $firstResult"
+    echo $message
+    vim $firstResult
+}
+
 #Todo: accept optional argument to save to alternate file
 #Todo: save files to subdirectory
 bookmark() {

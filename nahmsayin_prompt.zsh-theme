@@ -28,8 +28,8 @@ function better_git_prompt_info {
 }
 
 function job_info {
-    local running=$(jobs -rp | grep -o '\[[^\]]*\]' | wc -l)
-    local suspended=$(jobs -sp | grep -o '\[[^\]]*\]' | wc -l)
+    local running=$(jobs -rp | grep -o '\[[^\]*\]' | wc -l)
+    local suspended=$(jobs -sp | grep -o '\[[^\]*\]' | wc -l)
     color="%{$bg[blue]%}"
     [ $running -gt 0 ] && echo " ${color} %{$fg[green]%}${running} running %{$reset_color%}"
     [ $suspended -gt 0 ] && echo " ${color} %{$fg[red]%}${suspended} suspended %{$reset_color%}"
