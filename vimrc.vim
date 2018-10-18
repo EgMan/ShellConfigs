@@ -69,3 +69,5 @@ set backupdir=~/.vim/backup//
 "store swp files in the same place
 set directory=~/.vim/swap//
 
+"accept mouse events
+set mouse=a

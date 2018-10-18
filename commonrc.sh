@@ -65,8 +65,19 @@ rc_name() {
     echo $(basename `rc_full`)
 }
 display_tmux_joke(){
-    joke=`curl -s https://icanhazdadjoke.com/`
-    [ ! -z $TMUX ] && tmux display-message $joke
+    if [ ! -z $TMUX ]; then
+        joke=`curl -s https://icanhazdadjoke.com/`
+        [ $? -ne 0 ] && return
+        grepres=`tmux show-options -g | grep display-panes-time`
+        if [ $? -ne 0 ]; then
+            dispPanesTime=3000
+        else
+            dispPanesTime=`echo $grepres | awk '{print $2}'`
+        fi
+        tmux set-option -g display-time 10000
+        tmux display-message $joke
+        tmux set-option -g display-time $dispPanesTime
+    fi
 }
 
 vimf() {
