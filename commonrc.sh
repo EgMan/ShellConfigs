@@ -60,6 +60,7 @@ rc_full() {
 rc_path() {
     echo $(dirname `rc_full`)
 }
+export rc_path_var=`rc_path`
 
 rc_name() {
     echo $(basename `rc_full`)
@@ -80,6 +81,24 @@ display_tmux_joke(){
     fi
 }
 
+echo -- > `rc_path`/.packet_quality
+monitor_packet_quality(){
+    [ -z $TMUX ] && return
+    while :; do
+        packet_quality=$((100 - $(grep -oP '\d+(?=%)' <<< $(ping -c 10 8.8.8.8 2>/dev/null)))) 
+        echo $packet_quality > `rc_path`/.packet_quality
+    done
+}
+
+tmux_colors(){
+    for i in {0..255}; do
+            printf "\x1b[38;5;${i}mcolour${i}\x1b[0m\n"
+    done
+}
+tmux_color(){
+    printf "\x1b[38;5;${1}m"
+}
+
 vimf() {
     results=`find . -name "$1"`
     resultsCount=`echo $results | wc -l`
@@ -87,6 +106,9 @@ vimf() {
     message="$resultsCount result(s) found.  Editing: $firstResult"
     echo $message
     vim $firstResult
+}
+rmswp(){
+    rm ~/.vim/swap/*
 }
 
 #Todo: accept optional argument to save to alternate file
@@ -141,6 +163,7 @@ render_loading_bar
 if [ ! -f `rc_path`/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
     echo "Running setup"
     [ ! -f ~/.vimrc ] && touch ~/.vimrc
+    [ ! -f `rc_path`/bookmarks ] && touch `rc_path`/bookmarks
     cat ~/.vimrc | grep "source `rc_path`/vimrc.vim" &> /dev/null
     if [ $? -ne 0 ]; then
         echo "source `rc_path`/vimrc.vim" >> ~/.vimrc
@@ -188,5 +211,6 @@ unset force_setup
 unset loading_bar_current
 clear_loading_bar
 
-#Asynchronously display a joke in tmux status-line
+#Asynchronous process startup
 (display_tmux_joke &) 
+monitor_packet_quality &
