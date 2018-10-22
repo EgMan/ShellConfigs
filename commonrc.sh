@@ -162,9 +162,12 @@ done
 render_loading_bar
 if [ ! -f `rc_path`/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
     echo "Running setup"
+    which tmux >/dev/null || {tput setaf 1; echo "Please install tmux"}
+    which vim >/dev/null || {tput setaf 1; echo "Please install vim"}
+    which zsh >/dev/null || {tput setaf 3; echo "While this config should work with bash, you're missing out on the zsh prompt. You should install zsh.  It's better."}
     [ ! -f ~/.vimrc ] && touch ~/.vimrc
     [ ! -f `rc_path`/bookmarks ] && touch `rc_path`/bookmarks
-    cat ~/.vimrc | grep "source `rc_path`/vimrc.vim" &> /dev/null
+    cat ~/.vimrc | grep "^source `rc_path`/vimrc.vim$" &> /dev/null
     if [ $? -ne 0 ]; then
         echo "source `rc_path`/vimrc.vim" >> ~/.vimrc
     fi
