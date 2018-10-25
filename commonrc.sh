@@ -67,7 +67,8 @@ rc_name() {
 }
 display_tmux_joke(){
     if [ ! -z $TMUX ]; then
-        joke=`curl -s https://icanhazdadjoke.com/`
+        #joke=`curl -s https://icanhazdadjoke.com/`
+        joke=`curl -s 'https://geek-jokes.sameerkumar.website/api' | sed -e 's/^"//' -e 's/"$//'`
         [ $? -ne 0 ] && return
         grepres=`tmux show-options -g | grep display-panes-time`
         if [ $? -ne 0 ]; then
@@ -81,14 +82,14 @@ display_tmux_joke(){
     fi
 }
 
-echo -- > `rc_path`/.packet_quality
 monitor_packet_quality(){
-    [ -z $TMUX ] && return
+    echo -- > `rc_path`/.packet_quality
     while :; do
         packet_quality=$((100 - $(grep -oP '\d+(?=%)' <<< $(ping -c 10 8.8.8.8 2>/dev/null)))) 
         echo $packet_quality > `rc_path`/.packet_quality
     done
-}
+} 
+[ -z $TMUX ] && monitor_packet_quality &
 
 tmux_colors(){
     for i in {0..255}; do
@@ -162,9 +163,10 @@ done
 render_loading_bar
 if [ ! -f `rc_path`/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
     echo "Running setup"
-    which tmux >/dev/null || {tput setaf 1; echo "Please install tmux"}
-    which vim >/dev/null || {tput setaf 1; echo "Please install vim"}
-    which zsh >/dev/null || {tput setaf 3; echo "While this config should work with bash, you're missing out on the zsh prompt. You should install zsh.  It's better."}
+    depsfound=1
+    which tmux >/dev/null || {tput setaf 1; echo "Please install tmux"; depsfound=0 }
+    which vim >/dev/null || {tput setaf 1; echo "Please install vim"; depsfound=0 }
+    which zsh >/dev/null || {tput setaf 3; echo "While this config should work with bash, you're missing out on the zsh. You should install zsh.  It's better."}
     [ ! -f ~/.vimrc ] && touch ~/.vimrc
     [ ! -f `rc_path`/bookmarks ] && touch `rc_path`/bookmarks
     cat ~/.vimrc | grep "^source `rc_path`/vimrc.vim$" &> /dev/null
@@ -184,7 +186,7 @@ if [ ! -f `rc_path`/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
     [ ! -d ~/.vim/undo ] && mkdir -p ~/.vim/undo
     [ ! -d ~/.vim/backup ] && mkdir -p ~/.vim/backup
 
-    touch `rc_path`/.deleteme_to_rerun_setup
+    [ $depsfound -ne 0 ] && touch `rc_path`/.deleteme_to_rerun_setup
 fi
 
 #Aliases
@@ -216,4 +218,3 @@ clear_loading_bar
 
 #Asynchronous process startup
 (display_tmux_joke &) 
-monitor_packet_quality &
