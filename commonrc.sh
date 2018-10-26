@@ -5,7 +5,7 @@ loading_bar_current=0
 
 #Fix for zsh's background process bug
 [ ! -z $ZSH_NAME ] && unsetopt BG_NICE
-
+[ ! -z $ZSH_NAME ] && setopt histignorespace
 #Functions
 query_cursor_row(){
     stty -echo
@@ -84,10 +84,35 @@ display_tmux_joke(){
 
 monitor_packet_quality(){
     echo -- > `rc_path`/.packet_quality
+    echo -n -------------------- > `rc_path`/.packet_responses
+    which fping >/dev/null
+    fpingins=$?
     while :; do
-        packet_quality=$((100 - $(grep -oP '\d+(?=%)' <<< $(ping -c 10 8.8.8.8 2>/dev/null)))) 
+        if [ $fpingins -eq 0 ]; then
+            dumbworkaround=`fping -c 1 8.8.8.8 2>/dev/null`
+            result=$?
+        else 
+            dumbworkaround=`ping -W 1 -c 1 8.8.8.8 2>/dev/null`
+            result=$?
+        fi
+        [ $result -eq 0 ] && reachable=1 || reachable=0
+        echo -n $reachable >> `rc_path`/.packet_responses
+        #cat `rc_path`/.packet_responses
+        sed -i 's/^.//' `rc_path`/.packet_responses
+        s=$(grep -o '1' `rc_path`/.packet_responses | wc -l)
+        f=$(grep -o '0' `rc_path`/.packet_responses | wc -l)
+        if [ $((s+f)) -eq 0 ]; then
+            packet_quality="--"
+        else
+            packet_quality=`echo "100*$s/($s+$f)" | bc -l | sed 's/\..*//'`
+        fi
         echo $packet_quality > `rc_path`/.packet_quality
     done
+    #old (slower) way
+    #while :; do
+    #    packet_quality=$((100 - $(grep -oP '\d+(?=%)' <<< $(ping -c 10 8.8.8.8 2>/dev/null)))) 
+    #    echo $packet_quality > `rc_path`/.packet_quality
+    #done
 } 
 [ -z $TMUX ] && monitor_packet_quality &
 
@@ -166,6 +191,7 @@ if [ ! -f `rc_path`/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
     depsfound=1
     which tmux >/dev/null || {tput setaf 1; echo "Please install tmux"; depsfound=0 }
     which vim >/dev/null || {tput setaf 1; echo "Please install vim"; depsfound=0 }
+    which fping >/dev/null || {tput setaf 1; echo "Please install fping"; depsfound=0 }
     which zsh >/dev/null || {tput setaf 3; echo "While this config should work with bash, you're missing out on the zsh. You should install zsh.  It's better."}
     [ ! -f ~/.vimrc ] && touch ~/.vimrc
     [ ! -f `rc_path`/bookmarks ] && touch `rc_path`/bookmarks
