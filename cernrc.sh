@@ -3,7 +3,7 @@
 #Aliases
 
 #Sources
-source `rc_path`/bookmarks_cern
+source $rc_path/bookmarks_cern
 
 #Functions
 cernerdns(){

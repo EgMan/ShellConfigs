@@ -6,6 +6,12 @@ loading_bar_current=0
 #Fix for zsh's background process bug
 [ ! -z $ZSH_NAME ] && unsetopt BG_NICE
 [ ! -z $ZSH_NAME ] && setopt histignorespace
+[ ! -z $BASH_VERSION ] && export rc_full=$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )/$(basename ${BASH_SOURCE[0]} 2>/dev/null)
+[ ! -z $ZSH_VERSION ] && export rc_full=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)/$(basename -- "$0")") 
+export rc_path=`dirname $rc_full`
+export rc_name=`basename $rc_full`
+
+
 #Functions
 query_cursor_row(){
     stty -echo
@@ -48,22 +54,27 @@ render_loading_bar(){
 }; render_loading_bar
 
 
-rc_full() {
+rc_full_func() {
     #ret= `realpath $BASH_SOURCE`
     #[ -z "$ret" ] && ret=${0:a}
     #echo $ret
 
     #TODO FIX THIS HARDCODING
-    echo "/home/aw055790/.rc/commonrc.sh"
+    #echo "/home/aw055790/.rc/commonrc.sh"
+     #[ ! -z $BASH_VERSION ] && echo $( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )/$(basename ${BASH_SOURCE[0]} 2>/dev/null)
+     #[ ! -z $ZSH_VERSION ] && echo $(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)/$(basename -- "$0")") 
+     
+
+    echo $rc_full
 }
 
-rc_path() {
-    echo $(dirname `rc_full`)
+rc_path_func() {
+    echo $(dirname ${rc_full})
 }
-export rc_path_var=`rc_path`
+export rc_path_var=${rc_path}
 
-rc_name() {
-    echo $(basename `rc_full`)
+rc_name_func() {
+    echo $(basename ${rc_full})
 }
 display_tmux_joke(){
     if [ ! -z $TMUX ]; then
@@ -83,8 +94,8 @@ display_tmux_joke(){
 }
 
 monitor_packet_quality(){
-    echo -- > `rc_path`/.packet_quality
-    echo -n -------------------- > `rc_path`/.packet_responses
+    echo -- > ${rc_path}/.packet_quality
+    echo -n -------------------- > ${rc_path}/.packet_responses
     which fping >/dev/null
     fpingins=$?
     while :; do
@@ -96,25 +107,25 @@ monitor_packet_quality(){
             result=$?
         fi
         [ $result -eq 0 ] && reachable=1 || reachable=0
-        echo -n $reachable >> `rc_path`/.packet_responses
-        #cat `rc_path`/.packet_responses
-        sed -i 's/^.//' `rc_path`/.packet_responses
-        s=$(grep -o '1' `rc_path`/.packet_responses | wc -l)
-        f=$(grep -o '0' `rc_path`/.packet_responses | wc -l)
+        echo -n $reachable >> ${rc_path}/.packet_responses
+        #cat ${rc_path}/.packet_responses
+        sed -i 's/^.//' ${rc_path}/.packet_responses
+        s=$(grep -o '1' ${rc_path}/.packet_responses | wc -l)
+        f=$(grep -o '0' ${rc_path}/.packet_responses | wc -l)
         if [ $((s+f)) -eq 0 ]; then
             packet_quality="--"
         else
             packet_quality=`echo "100*$s/($s+$f)" | bc -l | sed 's/\..*//'`
         fi
-        echo $packet_quality > `rc_path`/.packet_quality
+        echo $packet_quality > ${rc_path}/.packet_quality
     done
     #old (slower) way
     #while :; do
     #    packet_quality=$((100 - $(grep -oP '\d+(?=%)' <<< $(ping -c 10 8.8.8.8 2>/dev/null)))) 
-    #    echo $packet_quality > `rc_path`/.packet_quality
+    #    echo $packet_quality > ${rc_path}/.packet_quality
     #done
 } 
-[ -z $TMUX ] && monitor_packet_quality &
+[ -z $TMUX ] && [ $no_tmux -eq 0 ] && monitor_packet_quality &
 
 tmux_colors(){
     for i in {0..255}; do
@@ -148,45 +159,51 @@ bookmark() {
         fi
         makeAlias="alias $1='cd $(pwd)'"
         echo $makeAlias
-        echo $makeAlias >> `rc_path`/bookmarks
-        echo "Saved to `rc_path`/bookmarks"
+        echo $makeAlias >> ${rc_path}/bookmarks
+        echo "Saved to ${rc_path}/bookmarks"
         eval ${makeAlias}
 }
-
-#Tmux
-render_loading_bar
-if [ -z $TMUX ]; then
-    if [[ "$TERM" == "screen" ]]; then
-        echo "Screen is garbage.  Use tmux instead."
-    elif [[ "$SSH_CONNECTION" != "" ]]; then
-        echo "SSH Connection detected.  Not attaching tmux session."
-    else
-        #Attempt to discover a detached session and atta it,
-        #else create a new session
-        WHOAMI=$(whoami)
-        if tmux has-session -t $WHOAMI 2>/dev/null; then
-            tmux -2 attach-session -t $WHOAMI
-        else
-        tmux -2 new-session -s $WHOAMI
-        fi
-    fi
-fi
 
 #Argument parsing
 render_loading_bar
 force_setup=0
+no_tmux=0
 while [[ $# -gt 0 ]]; do
     case "$1" in
         -setup | -s)
             force_setup=1
         ;;
+        -notmux | -n)
+            no_tmux=1
+        ;;
     esac
     shift 1
 done
 
+#Tmux
+render_loading_bar
+if [ $no_tmux -eq 0 ]; then
+    if [ -z $TMUX ]; then
+        if [[ "$TERM" == "screen" ]]; then
+            echo "Screen is garbage.  Use tmux instead."
+        elif [[ "$SSH_CONNECTION" != "" ]]; then
+            echo "SSH Connection detected.  Not attaching tmux session."
+        else
+            #Attempt to discover a detached session and atta it,
+            #else create a new session
+            WHOAMI=$(whoami)
+            if tmux has-session -t $WHOAMI 2>/dev/null; then
+                tmux -2 attach-session -t $WHOAMI
+            else
+            tmux -2 new-session -s $WHOAMI
+            fi
+        fi
+    fi
+fi
+
 #One time setup
 render_loading_bar
-if [ ! -f `rc_path`/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
+if [ ! -f ${rc_path}/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
     echo "Running setup"
     depsfound=1
     which tmux >/dev/null || {tput setaf 1; echo "Please install tmux"; depsfound=0 }
@@ -194,46 +211,60 @@ if [ ! -f `rc_path`/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
     which fping >/dev/null || {tput setaf 1; echo "Please install fping"; depsfound=0 }
     which zsh >/dev/null || {tput setaf 3; echo "While this config should work with bash, you're missing out on the zsh. You should install zsh.  It's better."}
     [ ! -f ~/.vimrc ] && touch ~/.vimrc
-    [ ! -f `rc_path`/bookmarks ] && touch `rc_path`/bookmarks
-    cat ~/.vimrc | grep "^source `rc_path`/vimrc.vim$" &> /dev/null
+    [ ! -f ${rc_path}/bookmarks ] && touch ${rc_path}/bookmarks
+    cat ~/.vimrc | grep "^source ${rc_path}/vimrc.vim$" &> /dev/null
     if [ $? -ne 0 ]; then
-        echo "source `rc_path`/vimrc.vim" >> ~/.vimrc
+        echo "source ${rc_path}/vimrc.vim" >> ~/.vimrc
     fi
     
     [ ! -f ~/.tmux.conf ] && touch ~/.tmux.conf
-    cat ~/.tmux.conf | grep "source-file `rc_path`/tmux.conf" &> /dev/null
+    cat ~/.tmux.conf | grep "source-file ${rc_path}/tmux.conf" &> /dev/null
     if [ $? -ne 0 ]; then
-        echo "source-file `rc_path`/tmux.conf" >> ~/.tmux.conf 
+        echo "source-file ${rc_path}/tmux.conf" >> ~/.tmux.conf 
+    fi
+
+    [ ! -f ~/.bashrc ] && touch ~/.bashrc
+    cat ~/.bashrc | grep "source ${rc_full}" &> /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Adding bashrc entry"
+        echo "source ${rc_full}" >> ~/.bashrc 
+    fi
+
+    [ ! -f ~/.zshrc ] && touch ~/.zshrc
+    cat ~/.zshrc | grep "source ${rc_full}" &> /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Adding zshrc entry"
+        echo "source ${rc_full}" >> ~/.zshrc 
     fi
     
-    [ -d ~/.oh.my.zsh ] && ln -sf  `rc_path`/nahmsayin_prompt.zsh-theme ~/.oh-my-zsh/themes/nahmsayin_prompt.zsh-theme
+    [ -d ~/.oh-my-zsh ] && ln -sf  ${rc_path}/nahmsayin_prompt.zsh-theme ~/.oh-my-zsh/themes/nahmsayin_prompt.zsh-theme
     
     [ ! -d ~/.vim/swp ] && mkdir -p ~/.vim/swap
     [ ! -d ~/.vim/undo ] && mkdir -p ~/.vim/undo
     [ ! -d ~/.vim/backup ] && mkdir -p ~/.vim/backup
 
-    [ $depsfound -ne 0 ] && touch `rc_path`/.deleteme_to_rerun_setup
+    [ $depsfound -ne 0 ] && touch ${rc_path}/.deleteme_to_rerun_setup
 fi
 
 #Aliases
 render_loading_bar
-alias commonrc="vim `rc_full`"
-alias refresh="source `rc_full`"
-alias bookmarks="vim `rc_path`/bookmarks"
-alias vimrc="vim `rc_path`/vimrc.vim"
-alias tmuxconf="vim `rc_path`/tmux.conf"
+alias commonrc="vim ${rc_full}"
+alias refresh="source ${rc_full}"
+alias bookmarks="vim ${rc_path}/bookmarks"
+alias vimrc="vim ${rc_path}/vimrc.vim"
+alias tmuxconf="vim ${rc_path}/tmux.conf"
 alias zrefresh="source ~/.zshrc"
 alias brefresh="source ~/.bashrc"
-alias nahmsayin="vim `rc_path`/nahmsayin_prompt.zsh-theme"
+alias nahmsayin="vim ${rc_path}/nahmsayin_prompt.zsh-theme"
 
 #Exports
 export HISTSIZE=$hist_size
 
 #Sources
 render_loading_bar
-source `rc_path`/cernrc.sh
-source `rc_path`/wslrc.sh
-source `rc_path`/bookmarks
+source ${rc_path}/cernrc.sh
+source ${rc_path}/wslrc.sh
+source ${rc_path}/bookmarks
 
 #Cleanup local
 render_loading_bar
