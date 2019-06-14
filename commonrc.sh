@@ -147,6 +147,15 @@ vimf() {
 rmswp(){
     rm ~/.vim/swap/*
 }
+mkdircd(){
+    mkdir $1 && cd $1
+}
+saveref(){
+    date=`date '+%Y-%m-%d %H:%M:%S'`
+    msg="Save (${date})"
+    [ -z "$1" ] || msg="${msg}: $1"
+    git commit -am "$msg" >/dev/null && git reset HEAD~1 >/dev/null && echo $msg || echo "Unsuccessful"
+}
 
 #Todo: accept optional argument to save to alternate file
 #Todo: save files to subdirectory
