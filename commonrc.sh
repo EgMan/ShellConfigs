@@ -125,7 +125,7 @@ monitor_packet_quality(){
     #    echo $packet_quality > ${rc_path}/.packet_quality
     #done
 } 
-[ -z $TMUX ] && [ $no_tmux -eq 0 ] && monitor_packet_quality &
+[ -z $TMUX ] && [ -z $no_tmux ] || [ $no_tmux -eq 0 ] && monitor_packet_quality &
 
 tmux_colors(){
     for i in {0..255}; do
@@ -265,6 +265,7 @@ alias tmuxconf="vim ${rc_path}/tmux.conf"
 alias zrefresh="source ~/.zshrc"
 alias brefresh="source ~/.bashrc"
 alias nahmsayin="vim ${rc_path}/nahmsayin_prompt.zsh-theme"
+alias please="sudo"
 
 #Exports
 export HISTSIZE=$hist_size
