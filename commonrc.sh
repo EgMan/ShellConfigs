@@ -7,7 +7,7 @@ loading_bar_current=0
 [ ! -z $ZSH_NAME ] && unsetopt BG_NICE
 [ ! -z $ZSH_NAME ] && setopt histignorespace
 [ ! -z $BASH_VERSION ] && export rc_full=$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )/$(basename ${BASH_SOURCE[0]} 2>/dev/null)
-[ ! -z $ZSH_VERSION ] && export rc_full=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)/$(basename -- "$0")") 
+[ ! -z $ZSH_VERSION ] && export rc_full=$(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)/$(basename -- "$0")")
 export rc_path=`dirname $rc_full`
 export rc_name=`basename $rc_full`
 
@@ -16,13 +16,13 @@ export rc_name=`basename $rc_full`
 query_cursor_row(){
     stty -echo
     echo -n $'\e[6n'
-    read -d R x 
+    read -d R x
     stty echo
-    #This global state bullshit is a dumb workaround for the fact that this means of 
-    #querying for cursor position can't run in a subshell.  
+    #This global state bullshit is a dumb workaround for the fact that this means of
+    #querying for cursor position can't run in a subshell.
     #therefore it can't be set or read into a variable
-    #change this if another way is found. 
-    cursor_row=$((`echo -n ${x#??} | awk -F';' '{print $1}'`-1))
+    #change this if another way is found.
+    #cursor_row=$((`echo -n ${x#??} | awk -F';' '{print $1}'`-1))
 }
 clear_loading_bar(){
     query_cursor_row
@@ -34,6 +34,7 @@ clear_loading_bar(){
     tput rc
 }
 render_loading_bar(){
+    echo "loading..."
     if [ $loading_bar_current -eq 0 ]; then
         query_cursor_row
         loading_bar_pos=$cursor_row
@@ -62,8 +63,8 @@ rc_full_func() {
     #TODO FIX THIS HARDCODING
     #echo "/home/aw055790/.rc/commonrc.sh"
      #[ ! -z $BASH_VERSION ] && echo $( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )/$(basename ${BASH_SOURCE[0]} 2>/dev/null)
-     #[ ! -z $ZSH_VERSION ] && echo $(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)/$(basename -- "$0")") 
-     
+     #[ ! -z $ZSH_VERSION ] && echo $(cd -P -- "$(dirname -- "$0")" && printf '%s\n' "$(pwd -P)/$(basename -- "$0")")
+
 
     echo $rc_full
 }
@@ -102,7 +103,7 @@ monitor_packet_quality(){
         if [ $fpingins -eq 0 ]; then
             dumbworkaround=`fping -c 1 8.8.8.8 2>/dev/null`
             result=$?
-        else 
+        else
             dumbworkaround=`ping -W 1 -c 1 8.8.8.8 2>/dev/null`
             result=$?
         fi
@@ -121,11 +122,11 @@ monitor_packet_quality(){
     done
     #old (slower) way
     #while :; do
-    #    packet_quality=$((100 - $(grep -oP '\d+(?=%)' <<< $(ping -c 10 8.8.8.8 2>/dev/null)))) 
+    #    packet_quality=$((100 - $(grep -oP '\d+(?=%)' <<< $(ping -c 10 8.8.8.8 2>/dev/null))))
     #    echo $packet_quality > ${rc_path}/.packet_quality
     #done
-} 
-[ -z $TMUX ] && [ -z $no_tmux ] || [ $no_tmux -eq 0 ] && monitor_packet_quality &
+}
+#[ -z $TMUX ] && [ -z $no_tmux ] || [ $no_tmux -eq 0 ] && monitor_packet_quality &
 
 tmux_colors(){
     for i in {0..255}; do
@@ -189,10 +190,13 @@ while [[ $# -gt 0 ]]; do
     shift 1
 done
 
+echo $rc_path
 #Tmux
 render_loading_bar
 if [ $no_tmux -eq 0 ]; then
+    echo "deleteme no_temux eq 0"
     if [ -z $TMUX ]; then
+        echo "deleteme -z tmux"
         if [[ "$TERM" == "screen" ]]; then
             echo "Screen is garbage.  Use tmux instead."
         elif [[ "$SSH_CONNECTION" != "" ]]; then
@@ -200,6 +204,7 @@ if [ $no_tmux -eq 0 ]; then
         else
             #Attempt to discover a detached session and atta it,
             #else create a new session
+            echo "initiating tmux session..."
             WHOAMI=$(whoami)
             if tmux has-session -t $WHOAMI 2>/dev/null; then
                 tmux -2 attach-session -t $WHOAMI
@@ -225,35 +230,36 @@ if [ ! -f ${rc_path}/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
     if [ $? -ne 0 ]; then
         echo "source ${rc_path}/vimrc.vim" >> ~/.vimrc
     fi
-    
+
     [ ! -f ~/.tmux.conf ] && touch ~/.tmux.conf
     cat ~/.tmux.conf | grep "source-file ${rc_path}/tmux.conf" &> /dev/null
     if [ $? -ne 0 ]; then
-        echo "source-file ${rc_path}/tmux.conf" >> ~/.tmux.conf 
+        echo "source-file ${rc_path}/tmux.conf" >> ~/.tmux.conf
     fi
 
     [ ! -f ~/.bashrc ] && touch ~/.bashrc
     cat ~/.bashrc | grep "source ${rc_full}" &> /dev/null
     if [ $? -ne 0 ]; then
         echo "Adding bashrc entry"
-        echo "source ${rc_full}" >> ~/.bashrc 
+        echo "source ${rc_full}" >> ~/.bashrc
     fi
 
     [ ! -f ~/.zshrc ] && touch ~/.zshrc
     cat ~/.zshrc | grep "source ${rc_full}" &> /dev/null
     if [ $? -ne 0 ]; then
         echo "Adding zshrc entry"
-        echo "source ${rc_full}" >> ~/.zshrc 
+        echo "source ${rc_full}" >> ~/.zshrc
     fi
-    
+
     [ -d ~/.oh-my-zsh ] && ln -sf  ${rc_path}/nahmsayin_prompt.zsh-theme ~/.oh-my-zsh/themes/nahmsayin_prompt.zsh-theme
-    
+
     [ ! -d ~/.vim/swp ] && mkdir -p ~/.vim/swap
     [ ! -d ~/.vim/undo ] && mkdir -p ~/.vim/undo
     [ ! -d ~/.vim/backup ] && mkdir -p ~/.vim/backup
 
     [ $depsfound -ne 0 ] && touch ${rc_path}/.deleteme_to_rerun_setup
 fi
+echo "deleteme setup done"
 
 #Aliases
 render_loading_bar
@@ -284,4 +290,4 @@ unset loading_bar_current
 clear_loading_bar
 
 #Asynchronous process startup
-(display_tmux_joke &) 
+(display_tmux_joke &)
