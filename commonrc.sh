@@ -109,7 +109,7 @@ monitor_packet_quality(){
         [ $result -eq 0 ] && reachable=1 || reachable=0
         echo -n $reachable >> ${rc_path}/.packet_responses
         #cat ${rc_path}/.packet_responses
-        sed -i 's/^.//' ${rc_path}/.packet_responses
+        sed -i'' -e 's/^.//' ${rc_path}/.packet_responses
         s=$(grep -o '1' ${rc_path}/.packet_responses | wc -l)
         f=$(grep -o '0' ${rc_path}/.packet_responses | wc -l)
         if [ $((s+f)) -eq 0 ]; then
