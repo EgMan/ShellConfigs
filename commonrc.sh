@@ -219,6 +219,7 @@ if [ ! -f ${rc_path}/.deleteme_to_rerun_setup ] || [ $force_setup -eq 1 ];then
     which vim >/dev/null || {tput setaf 1; echo "Please install vim"; depsfound=0 }
     which fping >/dev/null || {tput setaf 1; echo "Please install fping"; depsfound=0 }
     which zsh >/dev/null || {tput setaf 3; echo "While this config should work with bash, you're missing out on the zsh. You should install zsh.  It's better."}
+    which zsh >/dev/null && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
     [ ! -f ~/.vimrc ] && touch ~/.vimrc
     [ ! -f ${rc_path}/bookmarks ] && touch ${rc_path}/bookmarks
     cat ~/.vimrc | grep "^source ${rc_path}/vimrc.vim$" &> /dev/null
@@ -272,7 +273,7 @@ export HISTSIZE=$hist_size
 
 #Sources
 render_loading_bar
-source ${rc_path}/cernrc.sh
+# source ${rc_path}/cernrc.sh
 source ${rc_path}/wslrc.sh
 source ${rc_path}/bookmarks
 
