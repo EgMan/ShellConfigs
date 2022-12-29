@@ -125,7 +125,7 @@ monitor_packet_quality(){
     #    echo $packet_quality > ${rc_path}/.packet_quality
     #done
 } 
-[ -z $TMUX ] && [ -z $no_tmux ] || [ $no_tmux -eq 0 ] && monitor_packet_quality &
+# [ -z $TMUX ] && [ -z $no_tmux ] || [ $no_tmux -eq 0 ] && monitor_packet_quality &
 
 tmux_colors(){
     for i in {0..255}; do
